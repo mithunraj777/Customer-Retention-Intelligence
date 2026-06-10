@@ -139,7 +139,6 @@ Customer-Churn-Prediction/
 ├── app.py
 ├── requirements.txt
 ├── README.md
-└── .gitignore
 ```
 
 ---
