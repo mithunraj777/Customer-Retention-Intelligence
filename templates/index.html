@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Customer Churn Prediction Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    min-height:100vh;
+    padding:40px;
+    color:white;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+}
+
+.header{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.header h1{
+    font-size:3rem;
+    margin-bottom:10px;
+}
+
+.header p{
+    color:#cbd5e1;
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+}
+
+.card{
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:25px;
+    padding:25px;
+}
+
+.card h2{
+    margin-bottom:20px;
+    color:#38bdf8;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.input-group{
+    display:flex;
+    flex-direction:column;
+}
+
+label{
+    margin-bottom:6px;
+    font-size:14px;
+    color:#cbd5e1;
+}
+
+input,select{
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    background:#334155;
+    color:white;
+}
+
+input:focus,
+select:focus{
+    outline:none;
+    border:2px solid #38bdf8;
+}
+
+.predict-btn{
+    width:100%;
+    margin-top:25px;
+    padding:15px;
+    border:none;
+    border-radius:15px;
+    font-size:18px;
+    font-weight:600;
+    cursor:pointer;
+    background:#38bdf8;
+    color:#0f172a;
+    transition:.3s;
+}
+
+.predict-btn:hover{
+    transform:translateY(-2px);
+}
+
+.result-panel{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.gauge{
+    width:220px;
+    height:220px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:conic-gradient(
+        #38bdf8 calc({{ probability|default(0) }} * 1%),
+        #334155 0%
+    );
+    margin-bottom:25px;
+}
+
+.inner-circle{
+    width:170px;
+    height:170px;
+    border-radius:50%;
+    background:#0f172a;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+}
+
+.percent{
+    font-size:2rem;
+    font-weight:bold;
+}
+
+.badge{
+    padding:10px 25px;
+    border-radius:50px;
+    font-weight:600;
+    margin-bottom:20px;
+}
+
+.low{
+    background:#14532d;
+    color:#bbf7d0;
+}
+
+.medium{
+    background:#78350f;
+    color:#fde68a;
+}
+
+.high{
+    background:#7f1d1d;
+    color:#fecaca;
+}
+
+.recommendation{
+    width:100%;
+    background:#1e293b;
+    padding:20px;
+    border-radius:15px;
+}
+
+.recommendation h3{
+    margin-bottom:10px;
+    color:#38bdf8;
+}
+
+.footer{
+    text-align:center;
+    margin-top:40px;
+    color:#94a3b8;
+}
+
+@media(max-width:900px){
+
+.dashboard{
+    grid-template-columns:1fr;
+}
+
+.form-grid{
+    grid-template-columns:1fr;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+    <h1>📈 Customer Retention Intelligence</h1>
+    <p>AI-Powered Churn Prediction & Retention Analytics Platform</p>
+</div>
+
+<div class="dashboard">
+
+<div class="card">
+
+<h2>Customer Profile</h2>
+
+<form action="/predict" method="POST">
+
+<div class="form-grid">
+
+<div class="input-group">
+<label>Gender</label>
+<select name="gender">
+<option>Male</option>
+<option>Female</option>
+</select>
+</div>
+
+<div class="input-group">
+<label>Senior Citizen</label>
+<select name="senior">
+<option value="0">No</option>
+<option value="1">Yes</option>
+</select>
+</div>
+
+<div class="input-group">
+<label>Partner</label>
+<select name="partner">
+<option>No</option>
+<option>Yes</option>
+</select>
+</div>
+
+<div class="input-group">
+<label>Dependents</label>
+<select name="dependents">
+<option>No</option>
+<option>Yes</option>
+</select>
+</div>
+
+<div class="input-group">
+<label>Tenure</label>
+<input type="number" name="tenure" required>
+</div>
+
+<div class="input-group">
+<label>Monthly Charges</label>
+<input type="number" step="0.01" name="monthly" required>
+</div>
+
+<div class="input-group">
+<label>Total Charges</label>
+<input type="number" step="0.01" name="total" required>
+</div>
+
+<div class="input-group">
+<label>Contract</label>
+<select name="contract">
+<option>Month-to-month</option>
+<option>One year</option>
+<option>Two year</option>
+</select>
+</div>
+
+<div class="input-group">
+<label>Internet Service</label>
+<select name="internet">
+<option>DSL</option>
+<option>Fiber optic</option>
+<option>No</option>
+</select>
+</div>
+
+<div class="input-group">
+    <label>Phone Service</label>
+    <select name="phone">
+        <option>No</option>
+        <option>Yes</option>
+    </select>
+</div>
+
+<div class="input-group">
+    <label>Multiple Lines</label>
+    <select name="multiline">
+        <option>No</option>
+        <option>Yes</option>
+        <option>No phone service</option>
+    </select>
+</div>
+
+<div class="input-group">
+    <label>Online Backup</label>
+    <select name="backup">
+        <option>No</option>
+        <option>Yes</option>
+        <option>No internet service</option>
+    </select>
+</div>
+
+<div class="input-group">
+    <label>Device Protection</label>
+    <select name="protection">
+        <option>No</option>
+        <option>Yes</option>
+        <option>No internet service</option>
+    </select>
+</div>
+
+<div class="input-group">
+    <label>Streaming TV</label>
+    <select name="tv">
+        <option>No</option>
+        <option>Yes</option>
+        <option>No internet service</option>
+    </select>
+</div>
+
+<div class="input-group">
+    <label>Streaming Movies</label>
+    <select name="movies">
+        <option>No</option>
+        <option>Yes</option>
+        <option>No internet service</option>
+    </select>
+</div>
+
+<div class="input-group">
+    <label>Paperless Billing</label>
+    <select name="paperless">
+        <option>No</option>
+        <option>Yes</option>
+    </select>
+</div>
+
+<div class="input-group">
+<label>Tech Support</label>
+<select name="tech">
+<option>No</option>
+<option>Yes</option>
+<option>No internet service</option>
+</select>
+</div>
+
+<div class="input-group">
+<label>Online Security</label>
+<select name="security">
+<option>No</option>
+<option>Yes</option>
+<option>No internet service</option>
+</select>
+</div>
+
+<div class="input-group">
+<label>Payment Method</label>
+<select name="payment">
+<option>Bank transfer (automatic)</option>
+<option>Credit card (automatic)</option>
+<option>Electronic check</option>
+<option>Mailed check</option>
+</select>
+</div>
+
+</div>
+
+<button class="predict-btn">
+Predict Churn Risk
+</button>
+
+</form>
+
+</div>
+
+<div class="card result-panel">
+
+<h2>Prediction Results</h2>
+
+{% if probability is defined %}
+
+<div class="gauge">
+
+<div class="inner-circle">
+<div class="percent">
+{{ probability }}%
+</div>
+<div>Churn Risk</div>
+</div>
+
+</div>
+
+<div class="badge
+{% if risk == 'LOW' %}
+low
+{% elif risk == 'MEDIUM' %}
+medium
+{% else %}
+high
+{% endif %}
+">
+{{ risk }} RISK
+</div>
+
+<div class="recommendation">
+
+<h3>Recommended Action</h3>
+
+<p>
+{{ recommendation }}
+</p>
+
+</div>
+
+{% else %}
+
+<div style="text-align:center;color:#94a3b8;">
+<h3>No Prediction Yet</h3>
+<br>
+<p>
+Enter customer details and click
+Predict Churn Risk.
+</p>
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+<div class="footer">
+Built with Flask • Scikit-Learn • XGBoost • SHAP Explainability
+</div>
+
+</div>
+
+</body>
+</html>
